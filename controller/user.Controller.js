@@ -104,25 +104,28 @@ export const logoutUser = asyncHandler(async(req, res, next)=>{
 
 
 export const checklogin = asyncHandler(async(req, res, next)=>{
-    const token = req.headers?.authorization?.split(" ")[1]
-    if(!token){
-        return next(new AppError('No token found',401))
+   const token = req.cookies.refresh;
+   if(!token){
+    return next(new AppError('No Token found', 401))
+   }
+   const decode = await decodeRefreshToken(token);
+   const email = decode.email;
+   if(!email){
+    return next(new AppError('Invalid token', 401))
+   }
+   const user = await prisma.user.findUnique({
+    where:{
+        email
     }
-    const data = await decodeaccessToken(token);
-    if(!data){
-        return next(new AppError('Invalid data',401))
-    }
-    const user = await prisma.user.findUnique({
-        where:{
-            email:data.email
-        }
-    })
-    const { password: _ , ...safedata } = user;
-    res.status(200).json({
-        user:safedata,
-        success:true,
-    })
-
+   })
+   const access = await accessToken(user)
+   const { password: _ ,...safedata} = user;
+   res.status(200).json({
+    success:true,
+    message:'New Access Token generated',
+    accessToken:access,
+    user:safedata,
+   })
 })
 
 

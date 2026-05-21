@@ -14,7 +14,7 @@ export const accessToken = (user)=>{
 export const refreshToken = (user)=>{
   return  jwt.sign({
         id:user.id,
-        email:user.email
+        email:user.email,
     },secretkey, { expiresIn:"7d" })
 }
 

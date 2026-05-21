@@ -3,11 +3,10 @@ import { AppError } from "../utils/AppError.js";
 import { prisma } from "../src/db.js";
 
 
-// 1. Create a post in a community
+// 1. Create a post only 
 export const createPost = asyncHandler(async(req, res, next)=>{
-    const communityId = req.params.communityId;
-    const userId = req.headers.userid;
-    console.log("this is header",userId)
+    const userId = req.user?.id;
+    console.log(userId)
     const { title, content, imageUrl} = req.body;
     if(!title || !content || !imageUrl) {
         return next(new AppError('Please filled all important field', 400))
@@ -23,16 +22,15 @@ export const createPost = asyncHandler(async(req, res, next)=>{
                     id:userId
                 }
             },
-            community:{
-                connect:{
-                    id:communityId
-                }
-            }
-
         },
         include:{
-            community:true,
-            author:true,
+            author:{
+                select:{
+                    name:true,
+                    email:true,
+                    username:true,
+                }
+            },
         }
     })
     res.status(200).json({
@@ -44,23 +42,62 @@ export const createPost = asyncHandler(async(req, res, next)=>{
 
 
 // 2. Get all posts in a community
-export const getAllPosts = asyncHandler(async(req, res, next)=>{
-    const posts = await prisma.post.findMany({
-        include:{
-            community:true,
-            author:true,
-        }
-    })
-    if(!posts){
-        return next(new AppError('No posts found', 400))
-    }
-    res.status(200).json({
-        success:true,
-        message:"Posts found",
-        data:posts
-    })
-})
+export const getAllPosts = asyncHandler(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
 
+  const skip = (page - 1) * limit;
+
+  const [posts, totalPosts] = await Promise.all([
+    prisma.post.findMany({
+      skip,
+      take: limit,
+
+      where:{
+        communityId:null,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+
+      include: {
+        _count:{
+            select:{
+                comments:true,
+                votes:true,
+            }
+        },
+        author: {
+            select:{
+                name:true,
+                email:true,
+            }
+        },
+      },
+    }),
+
+    prisma.post.count(),
+  ]);
+
+  const totalPages = Math.ceil(totalPosts / limit);
+
+  res.status(200).json({
+    success: true,
+    message: "Posts fetched successfully",
+
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalPosts,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+
+    data: posts,
+  });
+});
 
 // 3. Get a post by id
 export const getSinglePost = asyncHandler(async(req, res, next)=>{
@@ -132,5 +169,51 @@ export const deletePost = asyncHandler(async(req, res, next)=>{
     res.status(200).json({
         success:true,
         message:'Post Deleted Successfully'
+    })
+})
+
+
+export const postinsideCommunity = asyncHandler(async(req, res, next)=>{
+    const {communityId} = req.params;
+    const userId = req.user.id;
+    let { title , content, imageUrl } = req.body;
+    if(!title || !content){
+        return next(new AppError("title and content are the required field" , 400))
+    }
+   const data = await prisma.post.create({
+    data: {
+        title,
+        content,
+        imageUrl,
+
+        author: {
+            connect: {
+                id: userId,
+            }
+        },
+
+        community: {
+            connect: {
+                id: communityId,
+            }
+        }
+    },
+
+    include: {
+        author: {
+            select: {
+                name: true,
+                email: true,
+                username: true,
+            }
+        },
+
+        community: true,
+    }
+})
+    res.status(201).json({
+        message:"Post created Successfully",
+        data,
+        success:true,
     })
 })

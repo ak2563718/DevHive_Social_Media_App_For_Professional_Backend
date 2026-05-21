@@ -23,6 +23,7 @@ model User {
  comments     Comment[]
  votes        Vote[]
  communities  Community[]
+ createdAt    DateTime @default(now())
 }
 
 model Community {
@@ -41,8 +42,8 @@ model Post {
  title       String
  content     String?
  imageUrl    String?
- community   Community  @relation(fields: [communityId], references: [id])
- communityId String
+ community   Community?  @relation(fields: [communityId], references: [id])
+ communityId String?
  author      User       @relation(fields: [authorId], references: [id])
  authorId    String
  comments    Comment[]

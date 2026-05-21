@@ -4,7 +4,8 @@ import { prisma } from '../src/db.js';
 
 
 export const manageVotes = asyncHandler(async (req, res, next) => {
-    const { vote, userId } = req.body;
+    const { vote } = req.body;
+    const userId = req.user.id;
     const postId = req.params.postId;
 
     if (!vote) {

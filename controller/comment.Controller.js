@@ -5,7 +5,8 @@ import { prisma } from '../src/db.js'
 
 // 1. Create New Comment
 export const createComment = asyncHandler(async(req, res, next)=>{
-    const {userId, content} = req.body;
+    const { content } = req.body;
+    const userId = req.user.id;
     const postId = req.params.postId;
     const comment = await prisma.comment.create({
         data:{
@@ -52,7 +53,7 @@ export const getallcommentOnpost = asyncHandler(async(req, res, next)=>{
 // 3. Update Comment
 export const updateComment = asyncHandler(async(req, res, next)=>{
     const commentId = req.params.commentId;
-    const userId = req.body.userId;
+    const userId = req.user.id;
     const { content} = req.body;
     if(!content){
         return  next(new AppError('Nothing to update',404))
