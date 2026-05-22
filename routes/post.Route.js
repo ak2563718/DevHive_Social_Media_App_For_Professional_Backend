@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/createpost',authmiddleware,createPost)
 router.get('/getallposts',getAllPosts)
 router.get('/getsinglepost/:id',getSinglePost)
-router.get('/getpostbyuser',getPostbyUser)
+router.get('/getpostbyuser',authmiddleware,getPostbyUser)
 router.post('/postincommunity/:communityId',authmiddleware,postinsideCommunity)
 
 export default router;

@@ -23,6 +23,7 @@ model User {
  comments     Comment[]
  votes        Vote[]
  communities  Community[]
+ profile      Profile[]
  createdAt    DateTime @default(now())
 }
 
@@ -69,4 +70,20 @@ model Vote {
  userId  String
  post    Post   @relation(fields: [postId], references: [id])
  postId  String
+}
+
+model Profile {
+  id          String @id @default(cuid())
+
+  name        String
+  email       String
+
+  profession  String?
+
+  imageUrl    String?
+  public_id   String?
+
+  user        User @relation(fields: [userId], references: [id])
+
+  userId      String @unique
 }

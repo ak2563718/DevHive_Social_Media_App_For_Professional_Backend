@@ -129,10 +129,13 @@ export const getSinglePost = asyncHandler(async(req, res, next)=>{
 
 // 4. Get a post by user
 export const getPostbyUser = asyncHandler(async(req, res, next)=>{
-    const {userId} = req.body;
+    const userId = req.user.id;
     const post = await prisma.post.findMany({
         where:{
             authorId:userId
+        },
+        orderBy:{
+            createdAt:'desc'
         },
         include:{
             author:{
@@ -141,7 +144,7 @@ export const getPostbyUser = asyncHandler(async(req, res, next)=>{
                     email:true,
                 }
             },
-            community:true
+            community:true,
         }
     })
     if(!post){

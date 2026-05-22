@@ -30,6 +30,13 @@ export const createUser = asyncHandler(async(req, res, next)=>{
                 password:await bcrypt.hash(password,10)
             }
         })
+        const profile = await prisma.profile.create({
+            data:{
+                name:name.trim(),
+                email:email.toLowerCase(),
+                userId:user.id,
+            }
+        })
         res.status(201).json({
             success:true,
             message:"User Registered Successfully",

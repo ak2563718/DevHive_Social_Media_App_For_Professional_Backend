@@ -8,6 +8,7 @@ import Comment from './routes/comment.Route.js'
 import Votes from './routes/vote.Routes.js'
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import profile from './routes/profile.Route.js'
 const app = express();
 app.use(cors({
     origin:'http://localhost:3000',
@@ -21,6 +22,7 @@ app.use('/api',Community)
 app.use('/api',Post)
 app.use('/api',Comment)
 app.use('/api',Votes)
+app.use('/api',profile)
 const port = process.env.PORT || 5000;
 
 app.use(errorMiddleware)
